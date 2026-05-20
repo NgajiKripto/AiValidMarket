@@ -6,6 +6,84 @@
 </script>
 
 <style>
+:root {
+  /* === Color Tokens (OKLCH) === */
+  /* Brand accent - warm teal/green hue ~170 */
+  --color-accent: oklch(0.55 0.14 170);
+  --color-accent-hover: oklch(0.48 0.14 170);
+  --color-accent-active: oklch(0.42 0.14 170);
+  --color-accent-subtle: oklch(0.94 0.03 170);
+  --color-accent-muted: oklch(0.88 0.04 170);
+
+  /* Neutrals - tinted with tiny chroma toward brand hue */
+  --color-bg: oklch(0.985 0.005 170);
+  --color-surface: oklch(0.97 0.005 170);
+  --color-surface-raised: oklch(0.99 0.005 170);
+  --color-border: oklch(0.88 0.008 170);
+  --color-border-muted: oklch(0.92 0.006 170);
+  --color-text: oklch(0.2 0.01 170);
+  --color-text-secondary: oklch(0.4 0.008 170);
+  --color-text-muted: oklch(0.55 0.006 170);
+  --color-text-on-accent: oklch(0.98 0.005 170);
+
+  /* Semantic colors */
+  --color-success: oklch(0.6 0.15 145);
+  --color-warning: oklch(0.7 0.12 75);
+  --color-error: oklch(0.55 0.2 25);
+  --color-error-bg: oklch(0.95 0.03 25);
+
+  /* === Typography === */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'Segoe UI Mono', monospace;
+
+  /* Type scale (ratio ~1.15) */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.15rem;
+  --text-xl: 1.325rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.75;
+
+  /* === Spacing (4pt scale) === */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+
+  /* === Radius === */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* === Shadows === */
+  --shadow-sm: 0 1px 2px oklch(0.2 0.01 170 / 0.05);
+  --shadow-md: 0 2px 8px oklch(0.2 0.01 170 / 0.08);
+
+  /* === Transitions === */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 250ms;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* === Focus ring === */
+  --focus-ring: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent);
+
+  /* === Layout === */
+  --content-width: 70ch;
+  --page-width: 1200px;
+}
+
 *,
 *::before,
 *::after {
@@ -21,10 +99,10 @@ html {
 }
 
 body {
-  font-family: 'JetBrains Mono', 'Space Grotesk', 'Inter', 'Noto Sans SC', monospace;
-  color: #000;
-  background: #fff;
-  line-height: 1.6;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: var(--color-bg);
+  line-height: var(--leading-normal);
   min-height: 100vh;
 }
 
@@ -36,11 +114,18 @@ a {
 button {
   font-family: inherit;
   cursor: pointer;
+  border: none;
+  background: none;
 }
 
 input,
 textarea {
   font-family: inherit;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 ::-webkit-scrollbar {
@@ -49,15 +134,15 @@ textarea {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f0f0f0;
+  background: var(--color-surface);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #000;
-  border-radius: 0;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #FF4500;
+  background: var(--color-text-muted);
 }
 </style>
