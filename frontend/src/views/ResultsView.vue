@@ -32,10 +32,11 @@
             v-for="(kw, i) in keywordsList"
             :key="i"
             class="keyword-pill"
+            :class="{ copied: copiedKeyword === kw }"
             @click="copyKeyword(kw)"
             type="button"
             title="Click to copy"
-          >{{ kw }}</button>
+          >{{ copiedKeyword === kw ? 'Copied!' : kw }}</button>
         </div>
       </section>
 
@@ -77,6 +78,7 @@
             v-model="chatInput"
             class="chat-input"
             placeholder="Ask a follow-up question..."
+            aria-label="Ask a follow-up question"
             @keyup.enter="sendChat"
           />
           <button class="chat-btn" :disabled="!chatInput.trim() || isChatting" @click="sendChat">
@@ -113,6 +115,7 @@ const chatHistory = ref([])
 const chatInput = ref('')
 const isChatting = ref(false)
 const chatContainer = ref(null)
+const copiedKeyword = ref(null)
 
 const scoreClass = computed(() => {
   const score = result.value?.market_viability_score || 0
@@ -149,6 +152,12 @@ const sourcesList = computed(() => {
 
 function copyKeyword(kw) {
   navigator.clipboard?.writeText(kw)
+  copiedKeyword.value = kw
+  setTimeout(() => {
+    if (copiedKeyword.value === kw) {
+      copiedKeyword.value = null
+    }
+  }, 1500)
 }
 
 async function sendChat() {
@@ -194,7 +203,7 @@ onMounted(async () => {
 }
 
 .navbar {
-  background: oklch(0.22 0.01 170);
+  background: var(--color-navbar-bg);
   color: var(--color-text-on-accent);
   padding: var(--space-4) var(--space-6);
 }
@@ -212,7 +221,7 @@ onMounted(async () => {
 }
 
 .brand:focus-visible {
-  box-shadow: 0 0 0 2px oklch(0.22 0.01 170), 0 0 0 4px var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-navbar-bg), 0 0 0 4px var(--color-accent);
 }
 
 .content {
@@ -340,6 +349,12 @@ onMounted(async () => {
 
 .keyword-pill:focus-visible {
   box-shadow: var(--focus-ring);
+}
+
+.keyword-pill.copied {
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  border-color: var(--color-accent);
 }
 
 /* Questions - clean list */
@@ -500,11 +515,13 @@ onMounted(async () => {
 }
 
 .chat-input:hover {
+  border-color: #99c2bc;
   border-color: oklch(0.75 0.03 170);
 }
 
 .chat-input:focus {
   border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
   box-shadow: 0 0 0 3px oklch(0.55 0.14 170 / 0.12);
 }
 

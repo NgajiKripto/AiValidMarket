@@ -115,7 +115,7 @@ onUnmounted(() => {
 }
 
 .navbar {
-  background: oklch(0.22 0.01 170);
+  background: var(--color-navbar-bg);
   color: var(--color-text-on-accent);
   padding: var(--space-4) var(--space-6);
 }
@@ -133,7 +133,7 @@ onUnmounted(() => {
 }
 
 .brand:focus-visible {
-  box-shadow: 0 0 0 2px oklch(0.22 0.01 170), 0 0 0 4px var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-navbar-bg), 0 0 0 4px var(--color-accent);
 }
 
 .content {
