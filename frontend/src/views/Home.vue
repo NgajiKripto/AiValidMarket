@@ -29,7 +29,11 @@
           class="idea-input"
           placeholder="Describe your startup idea here... Be as detailed as possible about what you want to build, who it's for, and what problem it solves."
           rows="6"
+          maxlength="5000"
         ></textarea>
+        <span class="char-count" :class="{ 'near-limit': ideaText.length > 4500 }">
+          {{ ideaText.length }} / 5000
+        </span>
         <button
           class="validate-btn"
           :disabled="!ideaText.trim() || isSubmitting"
@@ -209,6 +213,19 @@ async function handleSubmit() {
   color: #FF4500;
   margin-top: 12px;
   font-size: 0.85rem;
+}
+
+.char-count {
+  display: block;
+  text-align: right;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.char-count.near-limit {
+  color: #FF4500;
+  font-weight: 600;
 }
 
 .workflow {

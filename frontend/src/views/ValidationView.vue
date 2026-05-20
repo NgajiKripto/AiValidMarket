@@ -53,12 +53,12 @@ const steps = [
   { label: 'Generating Report', description: 'Synthesizing all findings into a validation report.' }
 ]
 
-function mapStatusToStep(status, progress) {
+function mapStatusToStep(status, message) {
   if (status === 'completed') return 3
   if (status === 'failed') return -1
-  if (progress) {
-    if (progress.includes('report') || progress.includes('generat')) return 2
-    if (progress.includes('research') || progress.includes('search')) return 1
+  if (message) {
+    if (message.includes('report') || message.includes('generat')) return 2
+    if (message.includes('research') || message.includes('search')) return 1
   }
   return 0
 }
@@ -83,7 +83,7 @@ async function pollStatus() {
       return
     }
 
-    currentStep.value = mapStatusToStep(data.status, data.progress)
+    currentStep.value = mapStatusToStep(data.status, data.message)
   } catch (err) {
     error.value = 'Failed to check status. Please refresh the page.'
     clearInterval(pollInterval)

@@ -167,7 +167,8 @@ async function sendChat() {
 onMounted(async () => {
   try {
     const response = await getValidationResult(taskId)
-    result.value = response.data.result || response.data
+    const data = response.data.result || response.data
+    result.value = data.report || data
   } catch (err) {
     error.value = 'Failed to load results. The validation may still be in progress.'
   }

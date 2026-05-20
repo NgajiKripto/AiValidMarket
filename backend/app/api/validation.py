@@ -81,6 +81,10 @@ def validate_idea():
         return jsonify({"error": "Missing 'idea' field"}), 400
 
     idea_text = data["idea"]
+
+    if len(idea_text) > 5000:
+        return jsonify({"error": "Idea text must be 5000 characters or fewer"}), 400
+
     task = task_manager.create_task()
 
     # Run validation in background thread
@@ -155,7 +159,6 @@ Answer the user's follow-up questions about this validation based on the data ga
 
         messages = [{"role": "system", "content": context}]
         messages.extend(chat_history)
-        messages.append({"role": "user", "content": message})
 
         response = llm_client.chat(messages, temperature=0.7)
         return jsonify({"response": response})
