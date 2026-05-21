@@ -52,10 +52,10 @@
         <div class="results-list">
           <div v-for="(item, i) in searchResults" :key="i" class="result-card">
             <div class="result-header">
-              <span class="type-badge">{{ item.type }}</span>
+              <span class="type-badge">{{ item.entry.memory_type }}</span>
               <span class="relevance-score">Score: {{ item.relevance_score?.toFixed(2) }}</span>
             </div>
-            <p class="result-content">{{ item.content }}</p>
+            <p class="result-content">{{ item.entry.summary || item.entry.content }}</p>
           </div>
         </div>
         <button class="clear-btn" @click="clearSearch">Clear Results</button>
@@ -69,8 +69,8 @@
         <div v-else class="sessions-list">
           <router-link
             v-for="session in sessions"
-            :key="session.session_id"
-            :to="`/memory/session/${session.session_id}`"
+            :key="session.id"
+            :to="`/memory/session/${session.id}`"
             class="session-card"
           >
             <p class="session-idea">{{ truncate(session.idea_text, 120) }}</p>
@@ -114,7 +114,7 @@ async function handleSearch() {
   error.value = ''
   try {
     const response = await searchMemories(searchQuery.value)
-    searchResults.value = response.data.results || []
+    searchResults.value = response.data || []
   } catch (err) {
     error.value = 'Search failed. Please try again.'
   }
@@ -133,7 +133,7 @@ onMounted(async () => {
       getMemorySessions()
     ])
     stats.value = statsRes.data
-    sessions.value = sessionsRes.data.sessions || []
+    sessions.value = sessionsRes.data || []
   } catch (err) {
     error.value = 'Failed to load memory data.'
   } finally {

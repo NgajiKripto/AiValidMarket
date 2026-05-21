@@ -52,9 +52,9 @@
         <div class="memories-list">
           <div v-for="(memory, i) in session.memories" :key="i" class="memory-card">
             <div class="memory-header">
-              <span class="type-badge">{{ memory.type }}</span>
+              <span class="type-badge">{{ memory.memory_type }}</span>
             </div>
-            <p class="memory-content">{{ memory.content }}</p>
+            <p class="memory-content">{{ memory.summary || memory.content }}</p>
           </div>
         </div>
       </section>

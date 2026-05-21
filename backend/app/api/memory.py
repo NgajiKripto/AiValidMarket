@@ -15,10 +15,9 @@ def list_sessions():
     offset = request.args.get("offset", 0, type=int)
 
     try:
-        sessions = memory_service.get_session_history(limit=limit)
-        # Apply offset manually since get_session_history only takes limit
+        sessions = memory_service.get_session_history(limit=limit, offset=offset)
         session_list = [s.to_dict() for s in sessions]
-        return jsonify(session_list[offset:])
+        return jsonify(session_list)
     except Exception as e:
         error(f"Error listing sessions: {e}")
         return jsonify({"error": str(e)}), 500
@@ -26,12 +25,19 @@ def list_sessions():
 
 @memory_bp.route("/sessions/<session_id>", methods=["GET"])
 def get_session(session_id):
-    """Get session detail."""
+    """Get session detail with associated memories."""
     try:
         session = memory_service._store.get_session(session_id)
         if session is None:
             return jsonify({"error": "Session not found"}), 404
-        return jsonify(session.to_dict())
+        session_dict = session.to_dict()
+        # Include memories associated with this session
+        all_memories = memory_service._store.get_memories_for_search()
+        session_memories = [
+            m.to_dict() for m in all_memories if m.session_id == session_id
+        ]
+        session_dict["memories"] = session_memories
+        return jsonify(session_dict)
     except Exception as e:
         error(f"Error getting session {session_id}: {e}")
         return jsonify({"error": str(e)}), 500

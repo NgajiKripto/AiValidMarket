@@ -96,6 +96,7 @@ def _run_validation(task_id: str, idea_text: str):
             )
             summary = executive_summary or f"Validated idea: {idea_text[:100]}"
             memory_service.end_session(session.id, summary)
+            memory_service.consolidate()
         except Exception as e:
             error(f"Memory capture failed (non-fatal): {e}")
 

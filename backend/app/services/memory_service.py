@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
+from app.config import Config
 from app.models.memory import (
     MemoryEntry,
     MemorySearchResult,
@@ -43,8 +44,10 @@ class MemoryService:
         session_id: Optional[str] = None,
         tags: Optional[list[str]] = None,
         metadata: Optional[dict] = None,
-    ) -> MemoryEntry:
+    ) -> Optional[MemoryEntry]:
         """Store a new memory entry."""
+        if not Config.MEMORY_ENABLED:
+            return None
         entry = MemoryEntry(
             id=str(uuid.uuid4()),
             content=content,
@@ -69,6 +72,8 @@ class MemoryService:
         memory_type_filter: Optional[MemoryType] = None,
     ) -> list[MemorySearchResult]:
         """Search memories by relevance to query."""
+        if not Config.MEMORY_ENABLED:
+            return []
         with self._service_lock:
             memories = self._store.get_memories_for_search()
 
@@ -96,10 +101,10 @@ class MemoryService:
         with self._service_lock:
             return self._store.delete_memory(memory_id)
 
-    def get_session_history(self, limit: int = 10) -> list[Session]:
+    def get_session_history(self, limit: int = 10, offset: int = 0) -> list[Session]:
         """Get recent sessions."""
         with self._service_lock:
-            return self._store.list_sessions(limit=limit)
+            return self._store.list_sessions(limit=limit, offset=offset)
 
     def start_session(self, idea_text: str) -> Session:
         """Start a new validation session."""
@@ -127,6 +132,8 @@ class MemoryService:
 
     def consolidate(self):
         """Apply memory decay and remove low-importance memories."""
+        if not Config.MEMORY_ENABLED:
+            return
         with self._service_lock:
             memories = self._store.get_memories_for_search()
 
@@ -158,6 +165,8 @@ class MemoryService:
 
     def inject_context(self, query: str) -> str:
         """Search memories and format results as LLM context block."""
+        if not Config.MEMORY_ENABLED:
+            return ""
         results = self.recall(query, limit=3)
 
         if not results:
