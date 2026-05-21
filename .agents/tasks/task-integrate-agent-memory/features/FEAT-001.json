@@ -1,0 +1,33 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Build the core memory service layer with SQLite persistence, BM25 text search, memory consolidation, and decay - inspired by agentmemory's architecture but implemented as a self-contained Python module within the existing Flask backend.",
+  "status": "in_progress",
+  "steps": [
+    "Step 1: Add SQLite dependency to backend/pyproject.toml (sqlite3 is stdlib, but add 'rank-bm25' for BM25 search). Also add 'numpy' as a lightweight dependency for similarity computations.",
+    "Step 2: Create backend/app/models/memory.py with SQLAlchemy-free dataclasses for memory entities: MemoryEntry (id, content, summary, memory_type enum [observation/episodic/semantic/procedural], importance float 0-1, access_count, created_at, last_accessed, session_id, tags list, metadata dict), Session (id, idea_text, summary, started_at, ended_at, status), and MemorySearchResult (entry, relevance_score).",
+    "Step 3: Create backend/app/services/memory_store.py - SQLite-backed storage layer. Singleton pattern matching TaskManager. Methods: init_db() creates tables (memories, sessions), save_memory(entry), get_memory(id), search_memories(query, limit, memory_type_filter), list_sessions(limit, offset), get_session(id), save_session(session), delete_memory(id), update_access(id). Use context managers for connections. DB file at configurable path (default: backend/data/memory.sqlite).",
+    "Step 4: Create backend/app/services/memory_search.py - BM25 search engine class. Methods: index_memories(memories list), search(query, top_k=5) returns ranked MemorySearchResult list. Tokenizes content using simple whitespace + lowercasing. Rebuilds index on each search call (or caches with invalidation flag).",
+    "Step 5: Create backend/app/services/memory_service.py - High-level memory service orchestrating store + search. Singleton like TaskManager. Methods: remember(content, memory_type, importance, session_id, tags, metadata) -> MemoryEntry, recall(query, limit=5, memory_type_filter=None) -> list[MemorySearchResult], forget(memory_id) -> bool, get_session_history(limit=10) -> list[Session], start_session(idea_text) -> Session, end_session(session_id, summary) -> Session, consolidate() runs decay and consolidation logic, inject_context(query) -> str returns formatted context string for LLM injection.",
+    "Step 6: Implement memory decay in memory_service.py: memories lose importance over time (Ebbinghaus-inspired curve), memories accessed frequently get boosted, memories below threshold (0.1) are auto-deleted. Run consolidate() periodically or on session end.",
+    "Step 7: Implement context injection in memory_service.py: inject_context(query) searches memories, formats top results as a context block string suitable for prepending to LLM system prompts. Includes session summaries and relevant past observations.",
+    "Step 8: Add MEMORY_DB_PATH config to backend/app/config.py (default: 'data/memory.sqlite' relative to backend dir). Add MEMORY_ENABLED flag (default: true).",
+    "Step 9: Create backend/tests/test_memory_service.py with tests for: save/retrieve memories, BM25 search finds relevant results, memory decay reduces importance, session lifecycle (start/end), context injection formats properly. Use temporary SQLite db (in-memory or tempfile)."
+  ],
+  "acceptance_criteria": [
+    "MemoryService can store and retrieve memories with SQLite persistence",
+    "BM25 search returns relevant memories ranked by relevance when queried",
+    "Memory decay reduces importance of old/unused memories over time",
+    "Session lifecycle (start, end with summary) works correctly",
+    "inject_context() returns a formatted string with relevant past context",
+    "All new tests pass with pytest",
+    "Existing tests still pass (no regressions)"
+  ],
+  "verification": [
+    "cd /projects/sandbox/AiValidMarket/backend && python -m pytest tests/ -v",
+    "cd /projects/sandbox/AiValidMarket/backend && python -c \"from app.services.memory_service import MemoryService; print('Import OK')\"",
+    "cd /projects/sandbox/AiValidMarket/backend && python -c \"from app.models.memory import MemoryEntry, Session, MemoryType; print('Models OK')\""
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

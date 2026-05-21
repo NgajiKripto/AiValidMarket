@@ -19,6 +19,12 @@ class Config:
     DEBUG = os.getenv("DEBUG", "false").lower() in ("true", "1", "yes")
     JSON_AS_ASCII = False
 
+    MEMORY_DB_PATH = os.getenv(
+        "MEMORY_DB_PATH",
+        str(Path(__file__).resolve().parent.parent / "data" / "memory.sqlite"),
+    )
+    MEMORY_ENABLED = os.getenv("MEMORY_ENABLED", "true").lower() in ("true", "1", "yes")
+
     @classmethod
     def validate(cls):
         """Validate that required configuration is set."""
