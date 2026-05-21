@@ -16,6 +16,16 @@ const routes = [
     path: '/results/:taskId',
     name: 'ResultsView',
     component: () => import('@/views/ResultsView.vue')
+  },
+  {
+    path: '/memory',
+    name: 'MemoryView',
+    component: () => import('@/views/MemoryView.vue')
+  },
+  {
+    path: '/memory/session/:sessionId',
+    name: 'SessionDetailView',
+    component: () => import('@/views/SessionDetailView.vue')
   }
 ]
 

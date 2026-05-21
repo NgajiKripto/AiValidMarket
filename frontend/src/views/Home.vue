@@ -3,14 +3,17 @@
     <nav class="navbar">
       <div class="navbar-inner">
         <span class="brand">AIVALIDMARKET</span>
-        <a
-          href="https://github.com/NgajiKripto/AiValidMarket"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="nav-link"
-        >
-          GitHub
-        </a>
+        <div class="nav-links">
+          <router-link to="/memory" class="nav-link">Memory</router-link>
+          <a
+            href="https://github.com/NgajiKripto/AiValidMarket"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="nav-link"
+          >
+            GitHub
+          </a>
+        </div>
       </div>
     </nav>
 
@@ -130,6 +133,12 @@ async function handleSubmit() {
   font-weight: 700;
   font-size: var(--text-lg);
   letter-spacing: 0.08em;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
 .nav-link {
