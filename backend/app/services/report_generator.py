@@ -9,7 +9,7 @@ class ReportGenerator:
         self.llm_client = llm_client
 
     def generate_report(self, idea_text: str, analysis_results: dict,
-                        research_results: list) -> dict:
+                        research_results: list, memory_context: str = None) -> dict:
         """
         Synthesize all findings into a structured validation report.
 
@@ -20,6 +20,11 @@ class ReportGenerator:
 
         # Summarize research results for the prompt
         research_summary = self._summarize_research(research_results)
+
+        # Build memory context section if available
+        memory_section = ""
+        if memory_context:
+            memory_section = f"\n## Relevant Past Insights\n{memory_context}\n"
 
         messages = [
             {
@@ -42,7 +47,7 @@ class ReportGenerator:
 
 ## Web Research Findings
 {research_summary}
-
+{memory_section}
 ## Instructions
 Using the ReACT pattern:
 1. REASON: Analyze patterns in the research data

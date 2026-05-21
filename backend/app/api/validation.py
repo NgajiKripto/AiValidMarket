@@ -2,8 +2,10 @@ import threading
 from flask import jsonify, request
 from app.api import validation_bp
 from app.config import Config
+from app.models.memory import MemoryType
 from app.models.task import TaskManager, TaskStatus
 from app.services.idea_analyzer import IdeaAnalyzer
+from app.services.memory_service import MemoryService
 from app.services.web_researcher import WebResearcher
 from app.services.report_generator import ReportGenerator
 from app.utils.llm_client import LLMClient
@@ -11,6 +13,7 @@ from app.utils.logger import info, error
 
 
 task_manager = TaskManager()
+memory_service = MemoryService()
 
 
 def _run_validation(task_id: str, idea_text: str):
@@ -25,6 +28,13 @@ def _run_validation(task_id: str, idea_text: str):
         analyzer = IdeaAnalyzer(llm_client)
         researcher = WebResearcher(Config.SERPER_API_KEY)
         report_gen = ReportGenerator(llm_client)
+
+        # Inject memory context from past validations
+        memory_context = ""
+        try:
+            memory_context = memory_service.inject_context(idea_text)
+        except Exception as e:
+            error(f"Memory context injection failed (non-fatal): {e}")
 
         # Step 1: Analyze the idea
         task_manager.update_task(
@@ -56,7 +66,9 @@ def _run_validation(task_id: str, idea_text: str):
         task_manager.update_task(
             task_id, progress=75, message="Generating validation report..."
         )
-        report = report_gen.generate_report(idea_text, analysis, research_results)
+        report = report_gen.generate_report(
+            idea_text, analysis, research_results, memory_context=memory_context
+        )
 
         # Complete
         final_result = {
@@ -67,6 +79,25 @@ def _run_validation(task_id: str, idea_text: str):
         }
         task_manager.complete_task(task_id, final_result)
         info(f"Validation task {task_id} completed successfully")
+
+        # Capture validation result as memory
+        try:
+            session = memory_service.start_session(idea_text)
+            tags = analysis.get("keywords", [])[:5] + analysis.get("categories", [])[:3]
+            executive_summary = report.get("executive_summary", "") if isinstance(report, dict) else ""
+            report_content = f"Validation of: {idea_text}\n{executive_summary}"
+            memory_service.remember(
+                content=report_content,
+                memory_type=MemoryType.SEMANTIC,
+                importance=0.7,
+                session_id=session.id,
+                tags=tags,
+                metadata={"task_id": task_id},
+            )
+            summary = executive_summary or f"Validated idea: {idea_text[:100]}"
+            memory_service.end_session(session.id, summary)
+        except Exception as e:
+            error(f"Memory capture failed (non-fatal): {e}")
 
     except Exception as e:
         error(f"Validation task {task_id} failed: {e}")
@@ -156,6 +187,17 @@ Report summary: {result.get('report', {}).get('executive_summary', 'No report av
 Market viability score: {result.get('report', {}).get('market_viability_score', 'N/A')}/10
 
 Answer the user's follow-up questions about this validation based on the data gathered."""
+
+        # Enrich context with relevant past memories
+        try:
+            memory_results = memory_service.recall(message, limit=3)
+            if memory_results:
+                past_insights = "\n".join(
+                    f"- {r.entry.summary}" for r in memory_results
+                )
+                context += f"\n\nPast validation insights:\n{past_insights}"
+        except Exception as e:
+            error(f"Memory recall in chat failed (non-fatal): {e}")
 
         messages = [{"role": "system", "content": context}]
         messages.extend(chat_history)
