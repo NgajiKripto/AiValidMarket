@@ -3,6 +3,9 @@
     <nav class="navbar">
       <div class="navbar-inner">
         <router-link to="/" class="brand">AIVALIDMARKET</router-link>
+        <div class="nav-links">
+          <router-link to="/memory" class="nav-link">Memory</router-link>
+        </div>
       </div>
     </nav>
 
@@ -123,6 +126,9 @@ onUnmounted(() => {
 .navbar-inner {
   max-width: var(--page-width);
   margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .brand {
@@ -133,6 +139,34 @@ onUnmounted(() => {
 }
 
 .brand:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-navbar-bg), 0 0 0 4px var(--color-accent);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.nav-link {
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid oklch(0.7 0.01 170);
+  border-radius: var(--radius-sm);
+  transition: background var(--duration-fast) var(--ease),
+              border-color var(--duration-fast) var(--ease);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-on-accent);
+}
+
+.nav-link:hover {
+  background: oklch(0.3 0.01 170);
+  border-color: oklch(0.5 0.01 170);
+}
+
+.nav-link:focus-visible {
   box-shadow: 0 0 0 2px var(--color-navbar-bg), 0 0 0 4px var(--color-accent);
 }
 

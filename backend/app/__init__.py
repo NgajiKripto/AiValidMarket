@@ -11,8 +11,9 @@ def create_app():
     CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     # Register blueprints
-    from app.api import validation_bp
+    from app.api import validation_bp, memory_bp
     app.register_blueprint(validation_bp, url_prefix="/api/validation")
+    app.register_blueprint(memory_bp, url_prefix="/api/memory")
 
     # Health check endpoint
     @app.route("/health")
