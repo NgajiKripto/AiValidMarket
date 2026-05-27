@@ -138,7 +138,11 @@ def validate_idea():
     task = task_manager.create_task()
 
     # Run validation in thread pool
-    executor.submit(_run_validation, task.id, idea_text)
+    try:
+        executor.submit(_run_validation, task.id, idea_text)
+    except Exception:
+        _validation_semaphore.release()
+        return jsonify({"error": "Service unavailable"}), 503
 
     sanitized_idea = sanitize_log_input(idea_text, max_length=50)
     info(f"Started validation task {task.id} for idea: {sanitized_idea}")
@@ -146,6 +150,7 @@ def validate_idea():
 
 
 @validation_bp.route("/status/<task_id>", methods=["GET"])
+@require_api_key
 def get_status(task_id):
     """Get the status of a validation task."""
     task = task_manager.get_task(task_id)
@@ -155,6 +160,7 @@ def get_status(task_id):
 
 
 @validation_bp.route("/result/<task_id>", methods=["GET"])
+@require_api_key
 def get_result(task_id):
     """Get the result of a completed validation task."""
     task = task_manager.get_task(task_id)
@@ -178,7 +184,7 @@ def chat():
         return jsonify({"error": "Missing 'task_id' or 'message' field"}), 400
 
     task_id = data["task_id"]
-    message = data["message"]
+    message = sanitize_input(data["message"])
     chat_history = validate_chat_history(data.get("chat_history", []))
 
     task = task_manager.get_task(task_id)
