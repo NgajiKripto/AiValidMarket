@@ -55,9 +55,12 @@
         <ul class="sources-list">
           <li v-for="(source, i) in sourcesList" :key="i" class="source-item">
             <span class="source-type-badge">{{ source.source_type || 'web' }}</span>
-            <a :href="source.link" target="_blank" rel="noopener" class="source-link">
+            <a v-if="isSafeUrl(source.link)" :href="source.link" target="_blank" rel="noopener noreferrer" class="source-link">
               {{ source.title }}
             </a>
+            <span v-else class="source-link source-link--unsafe">
+              {{ source.title }}
+            </span>
             <p class="source-snippet" v-if="source.snippet">{{ source.snippet }}</p>
           </li>
         </ul>
@@ -161,6 +164,16 @@ function copyKeyword(kw) {
       copiedKeyword.value = null
     }
   }, 1500)
+}
+
+function isSafeUrl(url) {
+  if (!url || typeof url !== 'string') return false
+  try {
+    const parsed = new URL(url, 'https://placeholder.invalid')
+    return ['http:', 'https:'].includes(parsed.protocol)
+  } catch {
+    return false
+  }
 }
 
 async function sendChat() {

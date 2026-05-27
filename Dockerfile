@@ -24,6 +24,18 @@ RUN cd backend && uv sync --frozen
 # Copy source code
 COPY . .
 
-EXPOSE 3000 5001
+# Build frontend for production
+RUN cd frontend && npm run build
 
-CMD ["npm", "run", "dev"]
+# Create non-root user
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+RUN chown -R appuser:appgroup /app
+
+USER appuser
+
+EXPOSE 5001
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:5001/health || exit 1
+
+CMD ["sh", "-c", "cd /app/backend && uv run gunicorn --bind 0.0.0.0:5001 --workers 2 --threads 4 'app:create_app()'"]

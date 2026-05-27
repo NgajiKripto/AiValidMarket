@@ -10,11 +10,15 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`)
+    if (import.meta.env.DEV) {
+      console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`)
+    }
     return config
   },
   (error) => {
-    console.error('[API] Request error:', error)
+    if (import.meta.env.DEV) {
+      console.error('[API] Request error:', error)
+    }
     return Promise.reject(error)
   }
 )
@@ -25,7 +29,9 @@ apiClient.interceptors.response.use(
   },
   (error) => {
     const message = error.response?.data?.error || error.message || 'Unknown error'
-    console.error(`[API] Response error: ${message}`)
+    if (import.meta.env.DEV) {
+      console.error(`[API] Response error: ${message}`)
+    }
     return Promise.reject(error)
   }
 )

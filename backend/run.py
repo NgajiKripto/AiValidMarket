@@ -18,6 +18,10 @@ def main():
         sys.exit(1)
 
     app = create_app()
+
+    if not Config.DEBUG:
+        info("Production mode detected. Consider using gunicorn: gunicorn --bind 0.0.0.0:5001 --workers 2 --threads 4 'app:create_app()'")
+
     info("Starting AiValidMarket backend server...")
     app.run(host="0.0.0.0", port=5001, debug=Config.DEBUG, threaded=True)
 
