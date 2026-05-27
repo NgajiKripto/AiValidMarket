@@ -1,7 +1,10 @@
 from flask import jsonify, request
+
 from app.api import memory_bp
-from app.services.memory_service import MemoryService
+from app.config import Config
+from app.middleware.security import require_api_key
 from app.models.memory import MemoryType
+from app.services.memory_service import MemoryService
 from app.utils.logger import info, error
 
 
@@ -9,9 +12,11 @@ memory_service = MemoryService()
 
 
 @memory_bp.route("/sessions", methods=["GET"])
+@require_api_key
 def list_sessions():
     """List past validation sessions."""
     limit = request.args.get("limit", 10, type=int)
+    limit = min(limit, Config.MAX_QUERY_LIMIT)
     offset = request.args.get("offset", 0, type=int)
 
     try:
@@ -24,6 +29,7 @@ def list_sessions():
 
 
 @memory_bp.route("/sessions/<session_id>", methods=["GET"])
+@require_api_key
 def get_session(session_id):
     """Get session detail with associated memories."""
     try:
@@ -44,6 +50,7 @@ def get_session(session_id):
 
 
 @memory_bp.route("/search", methods=["POST"])
+@require_api_key
 def search_memories():
     """Search memories by query."""
     data = request.get_json()
@@ -52,6 +59,7 @@ def search_memories():
 
     query = data["query"]
     limit = data.get("limit", 5)
+    limit = min(limit, Config.MAX_QUERY_LIMIT)
     memory_type = data.get("type")
 
     type_filter = None
@@ -70,6 +78,7 @@ def search_memories():
 
 
 @memory_bp.route("/<memory_id>", methods=["DELETE"])
+@require_api_key
 def delete_memory(memory_id):
     """Delete a memory by ID."""
     try:
@@ -81,6 +90,7 @@ def delete_memory(memory_id):
 
 
 @memory_bp.route("/stats", methods=["GET"])
+@require_api_key
 def get_stats():
     """Get memory system statistics."""
     try:
