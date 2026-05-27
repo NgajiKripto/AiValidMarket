@@ -25,6 +25,15 @@ class Config:
     )
     MEMORY_ENABLED = os.getenv("MEMORY_ENABLED", "true").lower() in ("true", "1", "yes")
 
+    # Security settings
+    ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5001")
+    RATE_LIMIT_DEFAULT = os.getenv("RATE_LIMIT_DEFAULT", "60 per minute")
+    RATE_LIMIT_VALIDATE = os.getenv("RATE_LIMIT_VALIDATE", "10 per minute")
+    API_KEY = os.getenv("API_KEY", "")
+    MAX_WORKERS = int(os.getenv("MAX_WORKERS", "10"))
+    MAX_CONCURRENT_VALIDATIONS = int(os.getenv("MAX_CONCURRENT_VALIDATIONS", "5"))
+    MAX_QUERY_LIMIT = int(os.getenv("MAX_QUERY_LIMIT", "100"))
+
     @classmethod
     def validate(cls):
         """Validate that required configuration is set."""

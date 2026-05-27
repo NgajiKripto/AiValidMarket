@@ -1,0 +1,28 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Frontend security fixes and Docker hardening: XSS prevention in ResultsView, remove console.log in production, Dockerfile non-root user and gunicorn",
+  "status": "pending",
+  "steps": [
+    "Step 1: Update frontend/src/views/ResultsView.vue: In the sources section where source.link is rendered as an href, add URL scheme validation. Create a computed or method 'isSafeUrl(url)' that only allows http: and https: schemes (rejects javascript:, data:, vbscript:, etc.). Modify the <a> tag to conditionally render: if isSafeUrl(source.link) then render as <a :href='source.link'>, otherwise render as <span> with the title text but no clickable link. Also add rel='noopener noreferrer' to all external links.",
+    "Step 2: Update frontend/src/api/index.js: Wrap console.log and console.error calls in a check for production mode. Use: if (import.meta.env.DEV) { console.log(...) }. In production, the interceptors should NOT log to console. Keep error logging in development only.",
+    "Step 3: Update Dockerfile for security hardening: (a) Add a non-root user: RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser. (b) After copying source code, add: RUN chown -R appuser:appgroup /app. (c) Add USER appuser before CMD. (d) Change CMD from 'npm run dev' to use gunicorn for backend: CMD [\"sh\", \"-c\", \"cd frontend && npm run preview & cd backend && uv run gunicorn --bind 0.0.0.0:5001 --workers 2 --threads 4 'app:create_app()'\"] or alternatively use a production start script. (e) Add HEALTHCHECK instruction.",
+    "Step 4: Update backend/run.py to support a production mode: Add a check for DEBUG=false to suggest using gunicorn. This is informational only - the Dockerfile handles actual production serving.",
+    "Step 5: Verify frontend builds successfully: cd frontend && npm run build"
+  ],
+  "acceptance_criteria": [
+    "ResultsView.vue validates URL schemes before rendering as clickable links - javascript: URLs are not rendered as <a> tags",
+    "Console.log statements in frontend/src/api/index.js are wrapped with DEV mode check",
+    "Dockerfile creates and uses a non-root user (appuser)",
+    "Dockerfile CMD uses gunicorn instead of 'npm run dev' for production",
+    "Frontend builds without errors after changes"
+  ],
+  "verification": [
+    "Run: cd /projects/sandbox/AiValidMarket/frontend && npm run build",
+    "Run: grep -n 'appuser' /projects/sandbox/AiValidMarket/Dockerfile to confirm non-root user",
+    "Run: grep -n 'gunicorn' /projects/sandbox/AiValidMarket/Dockerfile to confirm production server",
+    "Run: grep -n 'import.meta.env.DEV' /projects/sandbox/AiValidMarket/frontend/src/api/index.js to confirm conditional logging"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

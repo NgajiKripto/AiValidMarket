@@ -26,9 +26,8 @@ class TestAPI:
 
     def test_validate_endpoint_returns_task_id(self):
         """Test POST /api/validation/validate returns a task_id."""
-        with patch("app.api.validation.threading.Thread") as mock_thread:
-            mock_thread_instance = MagicMock()
-            mock_thread.return_value = mock_thread_instance
+        with patch("app.api.validation.executor") as mock_executor:
+            mock_executor.submit = MagicMock()
 
             response = self.client.post(
                 "/api/validation/validate",
@@ -40,7 +39,7 @@ class TestAPI:
             assert "task_id" in data
             assert "status" in data
             assert data["status"] == "pending"
-            mock_thread_instance.start.assert_called_once()
+            mock_executor.submit.assert_called_once()
 
     def test_validate_endpoint_missing_idea(self):
         """Test POST /api/validation/validate returns 400 without idea."""

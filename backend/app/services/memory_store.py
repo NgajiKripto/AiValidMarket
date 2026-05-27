@@ -125,11 +125,14 @@ class MemoryStore:
                     ).fetchall()
         return [self._row_to_memory(row) for row in rows]
 
-    def get_memories_for_search(self) -> list[MemoryEntry]:
-        """Get all memories for search indexing."""
+    def get_memories_for_search(self, limit: int = 1000) -> list[MemoryEntry]:
+        """Get memories for search indexing with a limit."""
         with self._db_lock:
             with self._get_connection() as conn:
-                rows = conn.execute("SELECT * FROM memories").fetchall()
+                rows = conn.execute(
+                    "SELECT * FROM memories ORDER BY last_accessed DESC LIMIT ?",
+                    (limit,),
+                ).fetchall()
         return [self._row_to_memory(row) for row in rows]
 
     def delete_memory(self, memory_id: str) -> bool:

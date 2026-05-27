@@ -53,22 +53,30 @@ def get_logger():
     return _logger
 
 
+def _sanitize(msg):
+    """Sanitize a log message to prevent log injection."""
+    from app.utils.sanitizer import sanitize_log_input
+    if isinstance(msg, str):
+        return sanitize_log_input(msg, max_length=2000)
+    return msg
+
+
 # Convenience functions
 def debug(msg, *args, **kwargs):
-    get_logger().debug(msg, *args, **kwargs)
+    get_logger().debug(_sanitize(msg), *args, **kwargs)
 
 
 def info(msg, *args, **kwargs):
-    get_logger().info(msg, *args, **kwargs)
+    get_logger().info(_sanitize(msg), *args, **kwargs)
 
 
 def warning(msg, *args, **kwargs):
-    get_logger().warning(msg, *args, **kwargs)
+    get_logger().warning(_sanitize(msg), *args, **kwargs)
 
 
 def error(msg, *args, **kwargs):
-    get_logger().error(msg, *args, **kwargs)
+    get_logger().error(_sanitize(msg), *args, **kwargs)
 
 
 def critical(msg, *args, **kwargs):
-    get_logger().critical(msg, *args, **kwargs)
+    get_logger().critical(_sanitize(msg), *args, **kwargs)

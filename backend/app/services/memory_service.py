@@ -12,6 +12,7 @@ from app.models.memory import (
 )
 from app.services.memory_search import MemorySearchEngine
 from app.services.memory_store import MemoryStore
+from app.utils.sanitizer import scan_content_for_injection
 
 
 class MemoryService:
@@ -48,6 +49,15 @@ class MemoryService:
         """Store a new memory entry."""
         if not Config.MEMORY_ENABLED:
             return None
+
+        # Scan content for injection patterns
+        entry_metadata = metadata or {}
+        is_safe, reason = scan_content_for_injection(content)
+        if not is_safe:
+            from app.utils.logger import warning
+            warning(f"Content flagged for potential injection: {reason}")
+            entry_metadata["content_warning"] = reason
+
         entry = MemoryEntry(
             id=str(uuid.uuid4()),
             content=content,
@@ -59,7 +69,7 @@ class MemoryService:
             last_accessed=datetime.utcnow(),
             session_id=session_id,
             tags=tags or [],
-            metadata=metadata or {},
+            metadata=entry_metadata,
         )
         with self._service_lock:
             self._store.save_memory(entry)

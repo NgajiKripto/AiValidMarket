@@ -1,7 +1,12 @@
 import threading
+from concurrent.futures import ThreadPoolExecutor
+
 from flask import jsonify, request
+
+from app import limiter
 from app.api import validation_bp
 from app.config import Config
+from app.middleware.security import require_api_key
 from app.models.memory import MemoryType
 from app.models.task import TaskManager, TaskStatus
 from app.services.idea_analyzer import IdeaAnalyzer
@@ -10,10 +15,15 @@ from app.services.web_researcher import WebResearcher
 from app.services.report_generator import ReportGenerator
 from app.utils.llm_client import LLMClient
 from app.utils.logger import info, error
+from app.utils.sanitizer import sanitize_input, sanitize_log_input, validate_chat_history
 
 
 task_manager = TaskManager()
 memory_service = MemoryService()
+
+# Thread pool and concurrency control
+executor = ThreadPoolExecutor(max_workers=Config.MAX_WORKERS)
+_validation_semaphore = threading.Semaphore(Config.MAX_CONCURRENT_VALIDATIONS)
 
 
 def _run_validation(task_id: str, idea_text: str):
@@ -103,31 +113,35 @@ def _run_validation(task_id: str, idea_text: str):
     except Exception as e:
         error(f"Validation task {task_id} failed: {e}")
         task_manager.fail_task(task_id, str(e))
+    finally:
+        _validation_semaphore.release()
 
 
 @validation_bp.route("/validate", methods=["POST"])
+@require_api_key
+@limiter.limit(Config.RATE_LIMIT_VALIDATE)
 def validate_idea():
     """Start an async idea validation task."""
     data = request.get_json()
     if not data or not data.get("idea"):
         return jsonify({"error": "Missing 'idea' field"}), 400
 
-    idea_text = data["idea"]
+    idea_text = sanitize_input(data["idea"])
 
     if len(idea_text) > 5000:
         return jsonify({"error": "Idea text must be 5000 characters or fewer"}), 400
 
+    # Enforce concurrent validation limit
+    if not _validation_semaphore.acquire(blocking=False):
+        return jsonify({"error": "Too many concurrent validations"}), 429
+
     task = task_manager.create_task()
 
-    # Run validation in background thread
-    thread = threading.Thread(
-        target=_run_validation,
-        args=(task.id, idea_text),
-        daemon=True,
-    )
-    thread.start()
+    # Run validation in thread pool
+    executor.submit(_run_validation, task.id, idea_text)
 
-    info(f"Started validation task {task.id} for idea: {idea_text[:50]}...")
+    sanitized_idea = sanitize_log_input(idea_text, max_length=50)
+    info(f"Started validation task {task.id} for idea: {sanitized_idea}")
     return jsonify({"task_id": task.id, "status": task.status.value}), 202
 
 
@@ -156,6 +170,7 @@ def get_result(task_id):
 
 
 @validation_bp.route("/chat", methods=["POST"])
+@require_api_key
 def chat():
     """Handle follow-up chat about a validation result."""
     data = request.get_json()
@@ -164,7 +179,7 @@ def chat():
 
     task_id = data["task_id"]
     message = data["message"]
-    chat_history = data.get("chat_history", [])
+    chat_history = validate_chat_history(data.get("chat_history", []))
 
     task = task_manager.get_task(task_id)
     if not task:
