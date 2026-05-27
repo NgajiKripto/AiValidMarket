@@ -2,7 +2,7 @@
   "id": "FEAT-001",
   "type": "feat",
   "description": "Backend security infrastructure: config, middleware, sanitizer, rate limiting, authentication, security headers, and CORS hardening",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "Step 1: Update backend/pyproject.toml to add 'flask-limiter>=3.5.0' and 'gunicorn>=21.0.0' to dependencies list.",
     "Step 2: Update backend/app/config.py to add security-related config attributes to the Config class: ALLOWED_ORIGINS (from env var ALLOWED_ORIGINS, default 'http://localhost:3000,http://localhost:5001'), RATE_LIMIT_DEFAULT (from env var RATE_LIMIT_DEFAULT, default '60 per minute'), RATE_LIMIT_VALIDATE (from env var RATE_LIMIT_VALIDATE, default '10 per minute'), API_KEY (from env var API_KEY, default empty string meaning auth disabled), MAX_WORKERS (from env var MAX_WORKERS, default 10, int), MAX_CONCURRENT_VALIDATIONS (from env var MAX_CONCURRENT_VALIDATIONS, default 5, int), MAX_QUERY_LIMIT (from env var MAX_QUERY_LIMIT, default 100, int).",
@@ -45,5 +45,5 @@
     "Run: cd /projects/sandbox/AiValidMarket/backend && uv run pytest tests/ -v"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "All 33 tests pass. uv sync --all-extras required to install pytest dev dependency. The validate_idea test needed semaphore consideration - since the test mocks executor.submit, the semaphore gets acquired but never released (since _run_validation never runs), but this is fine for testing since each test creates a fresh app. flask-limiter 4.1.1 installed (newer than 3.5.0 minimum). No circular import issues with sanitizer/logger pattern."
 }
