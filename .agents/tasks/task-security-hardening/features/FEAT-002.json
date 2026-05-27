@@ -2,7 +2,7 @@
   "id": "FEAT-002",
   "type": "feat",
   "description": "Frontend security fixes and Docker hardening: XSS prevention in ResultsView, remove console.log in production, Dockerfile non-root user and gunicorn",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "Step 1: Update frontend/src/views/ResultsView.vue: In the sources section where source.link is rendered as an href, add URL scheme validation. Create a computed or method 'isSafeUrl(url)' that only allows http: and https: schemes (rejects javascript:, data:, vbscript:, etc.). Modify the <a> tag to conditionally render: if isSafeUrl(source.link) then render as <a :href='source.link'>, otherwise render as <span> with the title text but no clickable link. Also add rel='noopener noreferrer' to all external links.",
     "Step 2: Update frontend/src/api/index.js: Wrap console.log and console.error calls in a check for production mode. Use: if (import.meta.env.DEV) { console.log(...) }. In production, the interceptors should NOT log to console. Keep error logging in development only.",
@@ -24,5 +24,5 @@
     "Run: grep -n 'import.meta.env.DEV' /projects/sandbox/AiValidMarket/frontend/src/api/index.js to confirm conditional logging"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "All changes implemented and verified. Frontend builds successfully with vite 7.3.3. All 33 backend tests pass. npm install was needed to get vite available for the build step. The frontend/package-lock.json was updated by npm install but not committed since it was just for local verification - only the source code changes were committed."
 }
